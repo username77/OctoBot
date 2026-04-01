@@ -61,6 +61,7 @@ USER = "user"
 ASSISTANT = "assistant"
 
 NO_SYSTEM_PROMPT_MODELS = ["o1-mini"]
+DEEPSEEK_DEFAULT_BASE_URL = "https://api.deepseek.com"
 
 
 def _get_langchain_client(provider: enums.AIProvider):
@@ -69,6 +70,9 @@ def _get_langchain_client(provider: enums.AIProvider):
     
     try:
         if provider == enums.AIProvider.OPENAI:
+            from langchain_openai import ChatOpenAI
+            LANGCHAIN_CLIENTS[provider] = ChatOpenAI
+        elif provider == enums.AIProvider.DEEPSEEK:
             from langchain_openai import ChatOpenAI
             LANGCHAIN_CLIENTS[provider] = ChatOpenAI
         elif provider == enums.AIProvider.ANTHROPIC:
@@ -106,6 +110,7 @@ class LangChainService(services.AbstractAIService):
     
     Supports multiple AI providers through LangChain's unified interface:
     - OpenAI (langchain-openai)
+    - DeepSeek (langchain-openai compatible)
     - Anthropic (langchain-anthropic)
     - Ollama (langchain-ollama)
     - Google (langchain-google-genai)
@@ -122,7 +127,7 @@ class LangChainService(services.AbstractAIService):
         if self._env_secret_key is None:
             return {
                 services_constants.CONFIG_LANGCHAIN_AI_PROVIDER: (
-                    "AI provider to use (openai, anthropic, ollama, google, microsoft, amazon, other)"
+                    "AI provider to use (openai, deepseek, anthropic, ollama, google, microsoft, amazon, other)"
                 ),
                 services_constants.CONFIG_LANGCHAIN_API_KEY: (
                     "Your API key for the selected AI provider"
@@ -288,6 +293,9 @@ class LangChainService(services.AbstractAIService):
             kwargs["api_key"] = api_key
             if base_url:
                 kwargs["base_url"] = base_url
+        elif self.ai_provider == enums.AIProvider.DEEPSEEK:
+            kwargs["api_key"] = api_key
+            kwargs["base_url"] = base_url or DEEPSEEK_DEFAULT_BASE_URL
         elif self.ai_provider == enums.AIProvider.ANTHROPIC:
             kwargs["api_key"] = api_key
             if base_url:
