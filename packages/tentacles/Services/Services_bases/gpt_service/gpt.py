@@ -65,6 +65,7 @@ REASONING_EFFORT_LOW = "low"
 REASONING_EFFORT_MEDIUM = "medium"
 REASONING_EFFORT_HIGH = "high"
 REASONING_EFFORT_VALUES = (REASONING_EFFORT_LOW, REASONING_EFFORT_MEDIUM, REASONING_EFFORT_HIGH)
+DEEPSEEK_DEFAULT_BASE_URL = "https://api.deepseek.com"
 
 
 class LLMService(services.AbstractAIService):
@@ -121,7 +122,7 @@ class LLMService(services.AbstractAIService):
                     "Whether the model supports tool calling when JSON output is requested. "
                     "If False, tool calls will be requested without JSON output."
                 ),
-                services_constants.CONFIG_LLM_AI_PROVIDER: "AI provider to use (openai, anthropic, local, other)",
+                services_constants.CONFIG_LLM_AI_PROVIDER: "AI provider to use (openai, deepseek, anthropic, local, other)",
                 services_constants.CONFIG_LLM_API_KEY: "API key for the AI service. Previously known as 'openai-secret-key'"
             }
             return fields
@@ -1610,6 +1611,8 @@ class LLMService(services.AbstractAIService):
         return services_constants.CONFIG_GPT
 
     def get_website_url(self):
+        if self.ai_provider == enums.AIProvider.DEEPSEEK:
+            return "https://platform.deepseek.com/"
         return "https://platform.openai.com/overview"
 
     def get_logo(self):
@@ -1647,7 +1650,11 @@ class LLMService(services.AbstractAIService):
             value = service_config.get(services_constants.CONFIG_LLM_CUSTOM_BASE_URL, None)
             if fields_utils.has_invalid_default_config_value(value):
                 return None
-            return value or None
+            if value:
+                return value
+            if self.ai_provider == enums.AIProvider.DEEPSEEK:
+                return DEEPSEEK_DEFAULT_BASE_URL
+            return None
         except Exception:
             return None
 

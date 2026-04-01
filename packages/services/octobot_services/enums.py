@@ -50,6 +50,7 @@ class AIModelPolicy(enum.Enum):
 
 class AIProvider(enum.Enum):
     OPENAI = "openai"
+    DEEPSEEK = "deepseek"
     ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
     GOOGLE = "google"
